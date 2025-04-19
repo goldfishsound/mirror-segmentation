@@ -388,12 +388,12 @@ class BFE_Module(nn.Module):
     def forward(self, x):
         conv1 = self.edge_layer1(x)
         conv2 = self.edge_layer2(x)
-        conv2 = F.upsample(conv2, size=x.size()[2:], mode='bilinear', align_corners=True)
+        conv2 = F.interpolate(conv2, size=x.size()[2:], mode='bilinear', align_corners=True)
         conv3 = self.edge_layer3(x)
-        conv3 = F.upsample(conv2, size=x.size()[2:], mode='bilinear', align_corners=True)
+        conv3 = F.interpolate(conv2, size=x.size()[2:], mode='bilinear', align_corners=True)
 
         conv4 = self.edge_layer4(x)
-        conv4 = F.upsample(conv2, size=x.size()[2:], mode='bilinear', align_corners=True)
+        conv4 = F.interpolate(conv2, size=x.size()[2:], mode='bilinear', align_corners=True)
 
         output = torch.cat((conv1, conv2, conv3, conv4), 1)
 
@@ -489,24 +489,24 @@ class PMDLite(nn.Module):
         layer1_predict = self.layer1_predict(cbam_1)
 
         edge_feature = self.edge_extract(layer1)
-        layer4_edge_feature = F.upsample(cbam_4, size=edge_feature.size()[2:], mode='bilinear', align_corners=True)
+        layer4_edge_feature = F.interpolate(cbam_4, size=edge_feature.size()[2:], mode='bilinear', align_corners=True)
         
         final_edge_feature = torch.cat( (edge_feature, layer4_edge_feature), 1)
         
         layer0_edge = self.edge_predict(final_edge_feature)
         
 
-        layer4_predict = F.upsample(layer4_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
-        layer3_predict = F.upsample(layer3_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
-        layer2_predict = F.upsample(layer2_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
-        layer1_predict = F.upsample(layer1_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
+        layer4_predict = F.interpolate(layer4_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
+        layer3_predict = F.interpolate(layer3_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
+        layer2_predict = F.interpolate(layer2_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
+        layer1_predict = F.interpolate(layer1_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
 
 
-        layer0_edge = F.upsample(layer0_edge, size=x.size()[2:], mode='bilinear', align_corners=True)
+        layer0_edge = F.interpolate(layer0_edge, size=x.size()[2:], mode='bilinear', align_corners=True)
 
         final_features = torch.cat((x, layer1_predict, layer0_edge, layer2_predict, layer3_predict, layer4_predict),1)
         final_predict = self.refinement(final_features)
-        final_predict = F.upsample(final_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
+        final_predict = F.interpolate(final_predict, size=x.size()[2:], mode='bilinear', align_corners=True)
 
         if self.training:
             return layer4_predict, layer3_predict, layer2_predict, layer1_predict, layer0_edge, final_predict
