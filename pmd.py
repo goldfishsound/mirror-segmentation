@@ -25,7 +25,6 @@ from device_manager import DeviceManager
 # Check for available devices and set the device accordingly.
 device_manager = DeviceManager()
 device_ = device_manager.get_device()
-print(f"Using device: {device_}")
 
 # =====================================
 # Convolutional block attention module
