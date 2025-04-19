@@ -22,16 +22,18 @@ from torch.autograd import Variable
 from torchvision import transforms
 from config import testing_path, weights_path, dataset_name, result_path
 from misc import check_mkdir, crf_refine
+from device_manager import DeviceManager
 
 
 # Change "pmd" to the appropriate version when running experiments with other models.
 # By default, pmd refers to our best-performing unpruned model.
 from pmd import PMDLite
 
-# Change this to the device ordinal of the GPU
-# If the device is cuda:x, device_ids should be [x].
-device_ids = [0]
-torch.cuda.set_device(device_ids[0])
+# Check for available devices and set the device accordingly.
+device_manager = DeviceManager()
+device_ = device_manager.get_device()
+print(f"Using device: {device_}")
+
 
 # Use a fully connected conditional random field for post-processing.
 # Proposed in:
@@ -62,10 +64,10 @@ to_test = {dataset_name: testing_path}
 # Main function
 # ==============
 def main():
-    net = PMDLite().cuda(device_ids[0])
+    net = PMDLite().to(device_)
 
     # Load model weights and biases. Change the device ordinal as needed.
-    net.load_state_dict(torch.load(weights_path, map_location='cuda:0'))
+    net.load_state_dict(torch.load(weights_path, map_location=device_))
 
     DS = dataset_name
     
@@ -87,7 +89,7 @@ def main():
                     img = img.convert('RGB')
                     print("{} is a gray image.".format(name))
                 w, h = img.size
-                img_var = Variable(img_transform(img).unsqueeze(0)).cuda()
+                img_var = Variable(img_transform(img).unsqueeze(0)).to(device_)
 
                 # Transfer the outputs (sigmoid of the mirror and edge maps) of the network 
                 # to the CPU.
