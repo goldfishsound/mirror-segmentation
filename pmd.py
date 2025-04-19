@@ -20,6 +20,13 @@ from torch import nn
 
 import timm
 
+from device_manager import DeviceManager
+
+# Check for available devices and set the device accordingly.
+device_manager = DeviceManager()
+device_ = device_manager.get_device()
+print(f"Using device: {device_}")
+
 # =====================================
 # Convolutional block attention module
 # =====================================
@@ -273,7 +280,7 @@ class Refinement_Net(nn.Module):
 
 
 def INF(B,H,W):
-     return -torch.diag(torch.tensor(float("inf")).cuda().repeat(H),0).unsqueeze(0).repeat(B*W,1,1)
+     return -torch.diag(torch.tensor(float("inf")).to(device_).repeat(H),0).unsqueeze(0).repeat(B*W,1,1)
 
 # =============================
 # Criss-Cross Attention Module
