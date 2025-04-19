@@ -32,8 +32,6 @@ from pmd import PMDLite
 # Check for available devices and set the device accordingly.
 device_manager = DeviceManager()
 device_ = device_manager.get_device()
-print(f"Using device: {device_}")
-
 
 # Use a fully connected conditional random field for post-processing.
 # Proposed in:
