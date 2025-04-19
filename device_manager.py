@@ -1,3 +1,13 @@
+# ===========================================================================================================
+# THIS FILE CONTAINS THE SCRIPT FOR DEVICE MANAGMENT.
+# Authors: Thomas Martin
+# Date Created: 2023-10-02
+# Last Modified: 2023-10-02
+# Description: This script contains the DeviceManager class, which is a singleton that manages the device
+#              (CPU or GPU) used for PyTorch operations. It initializes the device based on the availability
+#              of CUDA or Metal Performance Shaders (MPS) and provides a method to retrieve the current device.
+# ===========================================================================================================
+
 import torch
 
 class DeviceManager:
