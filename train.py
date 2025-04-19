@@ -32,6 +32,8 @@ import joint_transforms
 from config import training_path, checkpoint_path
 from datasets import ImageFolder
 from misc import AvgMeter, check_mkdir
+from device_manager import DeviceManager
+
 
 # Change "pmd" to the appropriate version when running experiments with other models.
 # By default, pmd refers to our best-performing unpruned model.
@@ -49,8 +51,13 @@ torch.manual_seed(2021)
 
 # Change this to the device ordinal of the GPU
 # If the device is cuda:x, device_ids should be [x].
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-device_ids = [0]
+# device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+# device_ids = [0]
+
+# Check for available devices and set the device accordingly.
+device_manager = DeviceManager()
+device_ = device_manager.get_device()
+print(f"Using device: {device_}")
 
 # Change this to the path of the directory containing the epoch snapshots.
 ckpt_path = checkpoint_path
@@ -113,17 +120,17 @@ total_epoch = args['epoch_num'] * len(train_loader)
 # ==============================
 # Initialize the loss functions.
 # ===============================
-structure_loss = loss.structure_loss().cuda(device_ids[0])
-bce_loss = nn.BCEWithLogitsLoss().cuda(device_ids[0])
-iou_loss = loss.IOU().cuda(device_ids[0])
-edge_loss = loss.edge_loss().cuda(device_ids[0])
+structure_loss = loss.structure_loss().to(device_)
+bce_loss = nn.BCEWithLogitsLoss().to(device_)
+iou_loss = loss.IOU().to(device_)
+edge_loss = loss.edge_loss().to(device_)
 
 # ==============
 # Main function
 # ==============
 def main():
     # Initialize the model.
-    net = PMDLite(training = True).cuda(device_ids[0])
+    net = PMDLite(training = True).to(device_)
 
     # Initialize the optimizer.
     optimizer = optim.SGD([
@@ -169,9 +176,9 @@ def train(net, optimizer):
             inputs, edges, labels = data
             batch_size = inputs.size(0)
 
-            inputs = inputs.to(device)
-            edges = edges.to(device)
-            labels = labels.to(device)
+            inputs = inputs.to(device_)
+            edges = edges.to(device_)
+            labels = labels.to(device_)
 
             optimizer.zero_grad()
 
@@ -226,7 +233,8 @@ def train(net, optimizer):
             del inputs
             del labels
             gc.collect()
-            torch.cuda.empty_cache()
+            if device_.type == 'cuda':
+                torch.cuda.empty_cache()
 
         # Save epoch snapshot.
         if epoch in args['save_point']:
@@ -235,7 +243,7 @@ def train(net, optimizer):
             torch.save(net.state_dict(), os.path.join(ckpt_path, exp_name + '/%d.pth' % epoch))
             torch.save(optimizer.state_dict(), os.path.join(ckpt_path, exp_name + '/O%d.pth' % epoch))
             # Transfer back to GPU.
-            net.cuda(device_ids[0])
+            net.to(device_)
             print("Epoch snapshot saved!")
 
         # Finish training.
